@@ -226,11 +226,35 @@ jobs:
           path: libnod-${{ matrix.name }}.tar.gz
           if-no-files-found: error
 
+  cargo-vendor:
+    name: Vendor Cargo sources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-vendor-filterer
+        run: cargo install --locked cargo-vendor-filterer
+      - name: Generate vendored sources archive
+        shell: bash
+        run: |
+          set -eou pipefail
+          mkdir .cargo
+          cargo vendor-filterer > .cargo/config.toml
+          { git ls-tree -r HEAD --name-only; find .cargo vendor -type f; } | tar -czvf nod-vendored.tar.zst -T -
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nod-vendored.tar.zst
+          path: nod-vendored.tar.zst
+          if-no-files-found: error
+
   release:
     name: Release
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    needs: [ build, build-libs ]
+    needs: [ build, build-libs, cargo-vendor ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -261,6 +285,11 @@ jobs:
               # .tar.gz files (lib packages) are already named correctly
               if [[ "$base" == *.tar.gz ]]; then
                 mv "$file" "../out/$base"
+                continue
+              fi
+              if [[ "$base" == *.tar.zst ]]; then
+                name="${base%%.*}"
+                mv "$file" "../out/${name}-${{github.ref_name}}.tar.zst"
                 continue
               fi
               name="${base%.*}"
