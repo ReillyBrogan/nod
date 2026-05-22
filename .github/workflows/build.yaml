@@ -227,7 +227,7 @@ jobs:
           if-no-files-found: error
 
   cargo-vendor:
-    name: Vendor Cargo sources
+    name: Vendor Cargo crates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -244,12 +244,12 @@ jobs:
           set -eou pipefail
           mkdir .cargo
           cargo vendor-filterer > .cargo/config.toml
-          { git ls-tree -r HEAD --name-only; find .cargo vendor -type f; } | tar -czvf nod-vendored.tar.zst -T -
+          find .cargo vendor -type f | tar -czvf vendored-crates.tar.zst -T -
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nod-vendored.tar.zst
-          path: nod-vendored.tar.zst
+          name: vendored-crates.tar.zst
+          path: vendored-crates.tar.zst
           if-no-files-found: error
 
   release:
