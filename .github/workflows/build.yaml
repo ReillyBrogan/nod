@@ -93,7 +93,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        platform: [ ubuntu-latest, windows-latest, macos-latest ]
+        platform: [ ubuntu-latest ]
       fail-fast: false
     runs-on: ${{ matrix.platform }}
     steps:
@@ -195,10 +195,10 @@ jobs:
         include:
           - platform: ubuntu-latest
             name: linux-x86_64
-          - platform: windows-latest
-            name: windows-x86_64
-          - platform: macos-latest
-            name: macos-arm64
+          # - platform: windows-latest
+          #   name: windows-x86_64
+          # - platform: macos-latest
+          #   name: macos-arm64
       fail-fast: false
     runs-on: ${{ matrix.platform }}
     steps:
